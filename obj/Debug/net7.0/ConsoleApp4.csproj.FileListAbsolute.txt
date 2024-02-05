@@ -35,3 +35,5 @@
 /Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/obj/Debug/net7.0/ConsoleApp4.genruntimeconfig.cache
 /Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/obj/Debug/net7.0/ref/ConsoleApp4.dll
 /Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/bin/Debug/net7.0/data.json
+/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/bin/Debug/net7.0/Microsoft.Extensions.DependencyInjection.dll
+/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/bin/Debug/net7.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll

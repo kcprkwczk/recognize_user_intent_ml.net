@@ -1,128 +1,97 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using ConsoleApp4.Models;
+using ConsoleApp4.Services;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ML;
-using Microsoft.ML.Data;
-using Newtonsoft.Json;
-
-public class QuestionsRoot
+namespace ConsoleApp4
 {
-    public List<QuestionData> Questions { get; set; }
-}
-
-public class IntentData
-{
-    public string Text { get; set; }
-    public string Label { get; set; }
-}
-
-public class IntentPrediction
-{
-    [ColumnName("PredictedLabel")]
-    public string Prediction { get; set; }
-    public float[] Score { get; set; }
-}
-
-public class QuestionData
-{
-    public string Question { get; set; }
-    public List<string> Intentions { get; set; }
-    public Dictionary<string, List<string>> Examples { get; set; }
-}
-
-class Program
-{
-    private static readonly float ConfidenceThreshold = 0.6f;
-
-    static void Main(string[] args)
+    class Program
     {
-        var mlContext = new MLContext();
-
-        string json = File.ReadAllText("data.json");
-        var questionsRoot = JsonConvert.DeserializeObject<QuestionsRoot>(json);
-        var questionsData = questionsRoot.Questions;
-
-        // Print available question IDs
-        Console.WriteLine("Available question IDs:");
-        foreach (var question in questionsData)
+        static void Main(string[] args)
         {
-            Console.WriteLine(question.Question);
-        }
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            var serviceProvider = services.BuildServiceProvider();
 
-        var trainingData = new List<IntentData>();
-        foreach (var question in questionsData)
-        {
-            foreach (var intent in question.Intentions)
+            var questionService = serviceProvider.GetRequiredService<IQuestionService>();
+            var modelTrainer = serviceProvider.GetRequiredService<IModelTrainer>();
+            var predictionService = serviceProvider.GetRequiredService<IPredictionService>();
+            var mlContext = serviceProvider.GetRequiredService<MLContext>();
+
+            var questionsRoot = questionService.LoadQuestions();
+
+            var trainedModels = new Dictionary<string, ITransformer>();
+
+            while (true)
             {
-                if (question.Examples.TryGetValue(intent, out var examples))
+                Console.Write("Wprowadź swoje dane: ");
+                string userInput = Console.ReadLine();
+
+                if (userInput?.ToLower() == ":q")
+                    break;
+
+                var inputParts = userInput?.Split(new[] { ',' }, 2);
+                if (inputParts == null || inputParts.Length != 2)
                 {
-                    foreach (var example in examples)
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Nieprawidłowy format danych wejściowych. Proszę użyć 'nazwa_modelu, twoja_wypowiedź'.");
+                    Console.ResetColor();
+                    continue;
+                }
+
+                string modelName = inputParts[0].Trim();
+                string userStatement = inputParts[1].Trim();
+
+                if (!trainedModels.TryGetValue(modelName, out ITransformer trainedModel))
+                {
+                    var modelQuestionData = questionsRoot.Questions.FirstOrDefault(q => q.Question == modelName);
+                    if (modelQuestionData == null)
                     {
-                        trainingData.Add(new IntentData { Text = example, Label = intent });
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"Nie znaleziono modelu '{modelName}'.");
+                        Console.ResetColor();
+                        continue;
                     }
+
+                    var trainingData = questionService.GetTrainingData(new QuestionsRoot { Questions = new List<QuestionData> { modelQuestionData } });
+                    
+                    if (trainingData == null || trainingData.Count == 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine($"Brak danych treningowych dla modelu '{modelName}'.");
+                        Console.ResetColor();
+                        continue;
+                    }
+
+                    IDataView trainingDataView = mlContext.Data.LoadFromEnumerable(trainingData);
+                    trainedModel = modelTrainer.TrainModel(mlContext, trainingDataView);
+
+                    trainedModels[modelName] = trainedModel;
+                }
+
+                IntentPrediction prediction = predictionService.Predict(trainedModel, userStatement);
+
+                if (prediction != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine($"Zamiar dla '{modelName}': {prediction.Prediction}");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("-1");
+                    Console.ResetColor();
                 }
             }
         }
 
-        IDataView trainingDataView = mlContext.Data.LoadFromEnumerable(trainingData);
-
-        var dataProcessPipeline = mlContext.Transforms.Conversion.MapValueToKey(outputColumnName: "Label", inputColumnName: nameof(IntentData.Label))
-            .Append(mlContext.Transforms.Text.FeaturizeText(outputColumnName: "Features", inputColumnName: nameof(IntentData.Text)))
-            .AppendCacheCheckpoint(mlContext);
-
-        var trainer = mlContext.MulticlassClassification.Trainers.SdcaMaximumEntropy("Label", "Features")
-            .Append(mlContext.Transforms.Conversion.MapKeyToValue("PredictedLabel"));
-        var trainingPipeline = dataProcessPipeline.Append(trainer);
-        var trainedModel = trainingPipeline.Fit(trainingDataView);
-
-        Console.WriteLine("\nModel is trained. Type 'exit' to quit.");
-        Console.WriteLine("Enter the question ID and user statement separated by a comma:");
-
-        string input;
-        while ((input = Console.ReadLine()) != null && input.ToLower() != "exit")
+        private static void ConfigureServices(IServiceCollection services)
         {
-            var inputs = input.Split(',');
-            if (inputs.Length != 2)
-            {
-                Console.WriteLine("Invalid input. Please provide the question ID and user statement separated by a comma.");
-                continue;
-            }
-
-            string questionId = inputs[0].Trim();
-            string userStatement = inputs[1].Trim();
-
-            // Find the corresponding question data
-            var questionData = questionsData.FirstOrDefault(q => q.Question == questionId);
-            if (questionData == null)
-            {
-                Console.WriteLine("Question ID not found.");
-                continue;
-            }
-
-            // Filter the training data to include only the examples for the specified question ID
-            var filteredTrainingData = trainingData.Where(td => questionData.Intentions.Contains(td.Label)).ToList();
-            IDataView filteredTrainingDataView = mlContext.Data.LoadFromEnumerable(filteredTrainingData);
-
-            // Retrain the model using filtered data
-            var filteredModel = trainingPipeline.Fit(filteredTrainingDataView);
-
-            // Create prediction engine using the filtered model
-            var predEngine = mlContext.Model.CreatePredictionEngine<IntentData, IntentPrediction>(filteredModel);
-            var prediction = predEngine.Predict(new IntentData { Text = userStatement });
-
-            // Get the index of the maximum score
-            int maxScoreIndex = prediction.Score.ToList().IndexOf(prediction.Score.Max());
-
-            // Check if the predicted label's score is above the threshold
-            if (prediction.Score[maxScoreIndex] < ConfidenceThreshold)
-            {
-                Console.WriteLine("The intent is unclear or confidence is too low.");
-            }
-            else
-            {
-                Console.WriteLine($"Predicted Intention: {prediction.Prediction}");
-            }
+            services.AddSingleton<MLContext>()
+                    .AddSingleton<IQuestionService, QuestionService>(s => new QuestionService("data.json"))
+                    .AddSingleton<IModelTrainer, ModelTrainer>()
+                    .AddSingleton<IPredictionService, PredictionService>(s =>
+                        new PredictionService(s.GetRequiredService<MLContext>(), 0.6f));
         }
     }
 }

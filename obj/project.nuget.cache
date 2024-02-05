@@ -1,9 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "pQl2SaqPY3IGI64UFpXtHzW88l6UpoYk8uYNUBBEqV2UWMtTRn3RnXigj/I6pNr3D4sBBQb9DLs5n/0krMbk6w==",
+  "dgSpecHash": "la+0AQFA8z7q72mUlnuCQJFYXQ0tCnAe56lq75uaVtePoVT2KuszHQKhQ1BmTbv+QLBmHmn5Q0ORwxDKXVW8Sg==",
   "success": true,
   "projectFilePath": "/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/ConsoleApp4.csproj",
   "expectedPackageFiles": [
+    "/Users/kkawczak/.nuget/packages/microsoft.extensions.dependencyinjection/7.0.0/microsoft.extensions.dependencyinjection.7.0.0.nupkg.sha512",
+    "/Users/kkawczak/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/7.0.0/microsoft.extensions.dependencyinjection.abstractions.7.0.0.nupkg.sha512",
     "/Users/kkawczak/.nuget/packages/microsoft.ml/3.0.1/microsoft.ml.3.0.1.nupkg.sha512",
     "/Users/kkawczak/.nuget/packages/microsoft.ml.cpumath/3.0.1/microsoft.ml.cpumath.3.0.1.nupkg.sha512",
     "/Users/kkawczak/.nuget/packages/microsoft.ml.dataview/3.0.1/microsoft.ml.dataview.3.0.1.nupkg.sha512",
