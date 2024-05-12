@@ -1281,19 +1281,19 @@
     ]
   },
   "packageFolders": {
-    "/Users/kkawczak/.nuget/packages/": {}
+    "/Users/kacperkawczak/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/ConsoleApp4.csproj",
+      "projectUniqueName": "/Users/kacperkawczak/dev/studia/recognize_user_intent_ml.net/ConsoleApp4.csproj",
       "projectName": "ConsoleApp4",
-      "projectPath": "/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/ConsoleApp4.csproj",
-      "packagesPath": "/Users/kkawczak/.nuget/packages/",
-      "outputPath": "/Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/obj/",
+      "projectPath": "/Users/kacperkawczak/dev/studia/recognize_user_intent_ml.net/ConsoleApp4.csproj",
+      "packagesPath": "/Users/kacperkawczak/.nuget/packages/",
+      "outputPath": "/Users/kacperkawczak/dev/studia/recognize_user_intent_ml.net/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/kkawczak/.nuget/NuGet/NuGet.Config"
+        "/Users/kacperkawczak/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net7.0"
@@ -1342,7 +1342,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/7.0.405/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.204/RuntimeIdentifierGraph.json"
       }
     }
   }

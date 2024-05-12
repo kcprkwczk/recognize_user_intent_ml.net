@@ -8,4 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = ConsoleApp4
-build_property.ProjectDir = /Users/kkawczak/RiderProjects/ConsoleApp4/ConsoleApp4/
+build_property.ProjectDir = /Users/kacperkawczak/dev/studia/recognize_user_intent_ml.net/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
